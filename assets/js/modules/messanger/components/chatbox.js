@@ -6,9 +6,7 @@ const MessangerChatbox = Vue.component('chatbox', {
     data: function () {
         return {
             profileinfo:{},
-            messages : [],      search: '',
-
-
+            messages : [],
             inputText : "",
             notificationURL : "https://kushtej.github.io/hosted/static/audios/notification.mp3",
         }
@@ -23,19 +21,18 @@ const MessangerChatbox = Vue.component('chatbox', {
         }
     },
     methods : {
-        insert(emoji) {
-            this.inputText += emoji
-          },
         sendChat() {
-            let sendText = $('#inputText').val().trim();
+            let sendText = this.inputText.trim();
             if(sendText.length!==0) {
                 this.messages.push({
-                    msgId : this.messages.length + 1,
-                    owner : "AGENT",
-                    content : sendText,
-                    createdAt : Date.now()
-                })
-                $('#inputText').val("")
+                    id : this.messages.length + 1, 
+                    type: "MESSAGE", 
+                    content : sendText, 
+                    owner : 'AGENT', 
+                    isLiked : true , 
+                    createdOn : new Date()
+                });
+                this.inputText = "";
                 this.receiveChat(sendText)
             }
         },
@@ -52,14 +49,15 @@ const MessangerChatbox = Vue.component('chatbox', {
         receiveChat(userText) {
             self = this
             setTimeout(function() {
-                let visitorText = "You said "+ userText;
+                let visitorText = "<b>You said : </b>"+ userText;
                 self.messages.push(
                     {
-                        msgId : self.messages.length + 1,
-                        owner : "VISITOR",
-                        content : visitorText,
-                        createdAt : Date.now(),
-                        isLiked : true
+                        id : self.messages.length + 1, 
+                        type: "MESSAGE", 
+                        content : visitorText, 
+                        owner : 'VISITOR', 
+                        isLiked : true , 
+                        createdOn : new Date()
                     }
                 )
             }, 2000);
@@ -105,13 +103,18 @@ const MessangerChatbox = Vue.component('chatbox', {
                 <h3 class="text-center mt-2" style="height:50%">Your Conversation starts Here</h3>
                 </div>
                 <div v-for="msg in messages" :key="msg.id">
+                    
+                    <div v-if="msg.owner == 'SYSTEM'" class="divider">
+                        <small class="text-secondary" v-html="msg.content">
+                        </small>
+                    </div>
+
                     <div v-if="msg.owner == 'VISITOR'">
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="row">
                                     <div class="col-sm-6">
-                                        <div v-if="msg.type == 'MESSAGE'" class="border rounded p-2 text-justify" style="width: fit-content;">
-                                            {{ msg.content }}
+                                        <div v-if="msg.type == 'MESSAGE'" class="border rounded p-2 text-justify" style="width: fit-content;" v-html="msg.content">
                                             <span>
                                                 <i class="fas fa-heart text-danger"></i>
                                             </span>
@@ -136,20 +139,13 @@ const MessangerChatbox = Vue.component('chatbox', {
                         </div>
                     </div>
 
-                    <div v-if="msg.owner == 'SYSTEM'" class="divider">
-                        <small class="text-secondary">
-                            {{msg.content}}
-                        </small>
-                    </div>
-
                     <div v-if="msg.owner == 'AGENT'">
                         <div class="row">
                             <div class="col-sm-12">
                                 <div class="row">
                                     <div class="col-sm-6"></div>
                                     <div class="col-sm-6" style="display: flex; justify-content: flex-end">
-                                        <div v-if="msg.type == 'MESSAGE'" class="border rounded p-2 text-justify right-message" style="width: fit-content;">
-                                            {{ msg.content }}
+                                        <div v-if="msg.type == 'MESSAGE'" class="border rounded p-2 text-justify right-message" style="width: fit-content;" v-html="msg.content">
                                             <span>
                                                 <i class="fas fa-heart text-danger"></i>
                                             </span>
@@ -176,7 +172,7 @@ const MessangerChatbox = Vue.component('chatbox', {
             </div>
         </div>
         <div class="input-group mb-3">
-            <input type="text" class="form-control" id="inputText" autocomplete="off" placeholder="Type here"
+            <input type="text" class="form-control" v-model="inputText" id="inputText" autocomplete="off" placeholder="Type here"
                 aria-label="inputText" v-on:keyup.enter="sendChat" aria-describedby="button-addon2">
             <div class="input-group-append">
                 <button class="btn btn-outline-secondary" type="button" v-on:click="sendChat" id="submit"><i
